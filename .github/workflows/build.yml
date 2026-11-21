@@ -1,0 +1,36 @@
+# Sandbox build routed by Rovara Build. Adding the `urgent` label starts a new run.
+name: build
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    types: [opened, synchronize, reopened, labeled]
+  workflow_dispatch:
+    inputs:
+      seconds:
+        description: How long the test step runs (to see concurrency limits)
+        default: "20"
+
+jobs:
+  route:
+    # Local copy of Rovara-Build's reusable route workflow (Rovara-Build is private for now).
+    uses: ./.github/workflows/route.yml
+    permissions:
+      id-token: write
+      contents: read
+    with:
+      endpoint: ${{ vars.ROVARA_BUILD_URL }}
+
+  build:
+    needs: route
+    runs-on: ${{ fromJSON(needs.route.outputs.runner) }}
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - name: Where am I?
+        run: |
+          echo "Runner:    $RUNNER_NAME ($RUNNER_OS/$RUNNER_ARCH)"
+          echo "CodeBuild: ${CODEBUILD_BUILD_ID:-not CodeBuild}"
+      - name: Test
+        run: ./test.sh "${{ inputs.seconds || '20' }}"
