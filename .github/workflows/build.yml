@@ -12,6 +12,11 @@ on:
         description: How long the test step runs (to see concurrency limits)
         default: "20"
 
+# Opening a PR with a label fires both "opened" and "labeled"; keep only the newest run per PR.
+concurrency:
+  group: build-${{ github.event.pull_request.number || github.sha }}
+  cancel-in-progress: true
+
 jobs:
   route:
     # Local copy of Rovara-Build's reusable route workflow (Rovara-Build is private for now).
