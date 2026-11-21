@@ -13,8 +13,9 @@ on:
         default: "20"
 
 # Opening a PR with a label fires both "opened" and "labeled"; keep only the newest run per PR.
+# Other runs (pushes, manual runs, re-runs) each get their own group, so they never cancel each other.
 concurrency:
-  group: build-${{ github.event.pull_request.number || github.sha }}
+  group: build-${{ github.event.pull_request.number && format('pr-{0}', github.event.pull_request.number) || github.run_id }}
   cancel-in-progress: true
 
 jobs:
